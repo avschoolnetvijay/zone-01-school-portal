@@ -45,7 +45,7 @@ async function initializeApp() {
         showToast(`✅ ${schoolData.length} schools loaded!`);
         
         // Initialize all features
-        populateFilterDropdowns();
+        updateCascadingFilters();
         buildDashboard();
         renderColumnChooser();
         loadSavedFilters();
@@ -281,29 +281,42 @@ document.addEventListener('click', (e) => {
 
 // --- Search & Filters Logic ---
 
-function populateFilterDropdowns() {
+function updateCascadingFilters() {
+    const filterProject = document.getElementById('filterProject').value;
+    const filterDistrict = document.getElementById('filterDistrict').value;
+    const filterCC = document.getElementById('filterCC').value;
+    const filterBlock = document.getElementById('filterBlock').value;
+
     const projects = new Set();
     const districts = new Set();
     const ccs = new Set();
     const blocks = new Set();
 
     schoolData.forEach(s => {
-        if (s["Project Name"] && s["Project Name"] !== 'NA') projects.add(s["Project Name"]);
-        if (s["DISTRICT"] && s["DISTRICT"] !== 'NA') districts.add(s["DISTRICT"]);
-        if (s["NAME OF CC_DEF"] && s["NAME OF CC_DEF"] !== 'NA') ccs.add(s["NAME OF CC_DEF"]);
-        if (s["BLOCK"] && s["BLOCK"] !== 'NA') blocks.add(s["BLOCK"]);
+        const matchProject = !filterProject || s["Project Name"] === filterProject;
+        const matchDistrict = !filterDistrict || s["DISTRICT"] === filterDistrict;
+        const matchCC = !filterCC || s["NAME OF CC_DEF"] === filterCC;
+        const matchBlock = !filterBlock || s["BLOCK"] === filterBlock;
+
+        if (matchDistrict && matchCC && matchBlock && s["Project Name"] && s["Project Name"] !== 'NA') projects.add(s["Project Name"]);
+        if (matchProject && matchCC && matchBlock && s["DISTRICT"] && s["DISTRICT"] !== 'NA') districts.add(s["DISTRICT"]);
+        if (matchProject && matchDistrict && matchBlock && s["NAME OF CC_DEF"] && s["NAME OF CC_DEF"] !== 'NA') ccs.add(s["NAME OF CC_DEF"]);
+        if (matchProject && matchDistrict && matchCC && s["BLOCK"] && s["BLOCK"] !== 'NA') blocks.add(s["BLOCK"]);
     });
 
-    const fillDropdown = (id, set) => {
+    const fillDropdown = (id, set, currentValue) => {
         const select = document.getElementById(id);
-        const options = Array.from(set).sort().map(val => `<option value="${escapeHTML(val)}">${escapeHTML(val)}</option>`).join('');
+        const options = Array.from(set).sort().map(val => 
+            `<option value="${escapeHTML(val)}" ${val === currentValue ? 'selected' : ''}>${escapeHTML(val)}</option>`
+        ).join('');
         select.innerHTML = `<option value="">All</option>` + options;
+        if (currentValue && !set.has(currentValue)) select.value = '';
     };
 
-    fillDropdown('filterProject', projects);
-    fillDropdown('filterDistrict', districts);
-    fillDropdown('filterCC', ccs);
-    fillDropdown('filterBlock', blocks);
+    fillDropdown('filterProject', projects, filterProject);
+    fillDropdown('filterDistrict', districts, filterDistrict);
+    fillDropdown('filterCC', ccs, filterCC);
+    fillDropdown('filterBlock', blocks, filterBlock);
 }
 
 function searchSchool() {
@@ -434,6 +447,8 @@ function resetSearch(clearUI = true) {
     document.getElementById('filterCC').value = '';
     document.getElementById('filterBlock').value = '';
     document.getElementById('sortSelect').value = 'School Code';
+    
+    updateCascadingFilters();
     
     if (clearUI) {
         document.getElementById('results').innerHTML = '';
@@ -655,7 +670,7 @@ function setupAutoRefresh() {
                     JSON.stringify(newData[0]) !== JSON.stringify(schoolData[0]);
                 if (hasChanged) {
                     schoolData = newData;
-                    populateFilterDropdowns();
+                    updateCascadingFilters();
                     buildDashboard();
                     searchSchool();
                 }
@@ -743,6 +758,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clearFiltersBtn').addEventListener('click', () => resetSearch(true));
     document.getElementById('refreshBtn').addEventListener('click', initializeApp);
     document.getElementById('saveFiltersBtn').addEventListener('click', saveFilters);
+    
+    // Cascading Filter Events
+    ['filterProject', 'filterDistrict', 'filterCC', 'filterBlock'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateCascadingFilters);
+    });
     
     // Select & Export Events
     document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
