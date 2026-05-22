@@ -14,7 +14,23 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <!-- AUTH SCREEN -->
+    <div id="authScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--body-gradient-start) 0%, var(--body-gradient-end) 100%); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: 90%; max-width: 400px; text-align: center;">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Restricted Access</h2>
+            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">Please enter the password to access the portal.</p>
+            <input type="password" id="sitePasswordInput" class="filter-input" placeholder="Enter Password" style="width: 100%; margin-bottom: 15px; padding: 12px; box-sizing: border-box;">
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                    <input type="checkbox" id="rememberPwdCheckbox" style="transform: scale(1.2);"> Remember Password
+                </label>
+            </div>
+            <button id="loginBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">Login</button>
+            <div id="loginError" style="color: var(--danger); font-size: 13px; margin-top: 10px; display: none;">Incorrect Password!</div>
+        </div>
+    </div>
+
+    <div class="container" id="appContainer" style="display: none;">
         <div class="header">
             <div class="header-row">
                 <h1>🏫 Zone-01 School Management Portal</h1>

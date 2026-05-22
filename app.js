@@ -24,7 +24,36 @@ const EXPORT_COLUMNS = [
 // Default selected columns for export
 let selectedExportColumns = new Set(EXPORT_COLUMNS);
 
+const SITE_PASSWORD = "Schoolnet@2025";
+
 // --- Initialization & Data Fetching ---
+
+function checkAuth() {
+    const savedPwd = localStorage.getItem('site_pwd');
+    if (savedPwd === SITE_PASSWORD) {
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        initializeApp();
+    } else {
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+    }
+}
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const pwd = document.getElementById('sitePasswordInput').value;
+    if (pwd === SITE_PASSWORD) {
+        if (document.getElementById('rememberPwdCheckbox').checked) {
+            localStorage.setItem('site_pwd', SITE_PASSWORD);
+        }
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        initializeApp();
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+    }
+});
 
 async function initializeApp() {
     try {
@@ -568,6 +597,25 @@ function exportExcel(onlySelected = false) {
     });
 
     const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    
+    // Add Worksheet Protection (Prevents editing without password)
+    worksheet['!protect'] = {
+        password: "Snet@2025",
+        selectLockedCells: true,
+        selectUnlockedCells: true,
+        formatCells: false,
+        formatColumns: false,
+        formatRows: false,
+        insertColumns: false,
+        insertRows: false,
+        insertHyperlinks: false,
+        deleteColumns: false,
+        deleteRows: false,
+        sort: false,
+        autoFilter: false,
+        pivotTables: false
+    };
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Schools");
     
@@ -763,6 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboardView'));
     document.getElementById('tabSearch').addEventListener('click', () => switchTab('searchView'));
     
+    // Auth Input Enter Key
+    document.getElementById('sitePasswordInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+    
     // Search & Filter Events
     document.getElementById('applyFiltersBtn').addEventListener('click', searchSchool);
     document.getElementById('clearFiltersBtn').addEventListener('click', () => resetSearch(true));
@@ -821,6 +874,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loadMoreBtn').addEventListener('click', loadMore);
     document.getElementById('results').addEventListener('click', handleCardClick);
     
-    // Start App
-    initializeApp();
+    // Start App Auth Flow
+    checkAuth();
 });
