@@ -596,9 +596,6 @@
 
     <script>
         // ===== CONFIGURATION =====
-        const SPREADSHEET_ID = '1a-J8Xy4V9xDxzciRAEL1BfnDSBUxHqs57zZZBfQ7ZMg';
-        const API_KEY = 'AIzaSyCUq2G9jzCG3oX04UD74ogSD1Dda8obb5E';
-        const SHEET_NAME = 'school master data';  // ✅ Updated sheet name
         const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
 
         // ===== GLOBAL VARIABLES =====
@@ -606,19 +603,18 @@
         let lastFetchTime = null;
         let autoRefreshTimer = null;
 
-        // ===== FETCH DATA FROM GOOGLE SHEETS =====
+        // ===== FETCH DATA VIA NETLIFY FUNCTION (API KEY HIDDEN SERVER-SIDE) =====
         async function fetchGoogleSheetData() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+            const url = '/.netlify/functions/get-sheet-data';
             
             try {
                 const response = await fetch(url);
+                const data = await response.json();
                 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message || `HTTP ${response.status}`);
+                    throw new Error(data.error || `HTTP ${response.status}`);
                 }
                 
-                const data = await response.json();
                 return data.values;
             } catch (error) {
                 console.error('Error fetching data:', error);
