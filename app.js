@@ -570,58 +570,54 @@ function renderColumnChooser() {
     });
 }
 
-function exportExcel(onlySelected = false) {
-    if (typeof XLSX === 'undefined') {
-        showToast('❌ Excel library loading, please wait...', true);
-        return;
-    }
-    
-    const dataToExport = onlySelected 
+async function exportExcel(selectedOnly) {
+    let dataToExport = selectedOnly 
         ? currentMatches.filter((_, idx) => selectedSchools.has(idx))
         : currentMatches;
-        
-    if (dataToExport.length === 0) {
-        showToast('❌ No data to export', true);
-        return;
-    }
+    if (dataToExport.length === 0) return showToast('⚠️ No data to export!');
 
-    // Filter columns
-    const filteredData = dataToExport.map(row => {
-        const newRow = {};
-        EXPORT_COLUMNS.forEach(col => {
-            if (selectedExportColumns.has(col)) {
-                newRow[col] = row[col];
-            }
-        });
-        return newRow;
+    const filteredData = dataToExport.map(school => {
+        let row = {};
+        selectedExportColumns.forEach(col => { row[col] = school[col] || ''; });
+        return row;
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
-    
-    // Add Worksheet Protection (Prevents editing without password)
-    worksheet['!protect'] = {
-        password: "Snet@2025",
-        selectLockedCells: true,
-        selectUnlockedCells: true,
-        formatCells: false,
-        formatColumns: false,
-        formatRows: false,
-        insertColumns: false,
-        insertRows: false,
-        insertHyperlinks: false,
-        deleteColumns: false,
-        deleteRows: false,
-        sort: false,
-        autoFilter: false,
-        pivotTables: false
-    };
+    try {
+        showToast('⏳ Encrypting and preparing Excel...');
+        const workbook = await XlsxPopulate.fromBlankAsync();
+        const sheet = workbook.sheet(0).name("Schools");
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Schools");
-    
-    const filename = `Zone01_Schools_${new Date().toISOString().slice(0,10)}.xlsx`;
-    XLSX.writeFile(workbook, filename);
-    showToast(`✅ Exported ${dataToExport.length} rows to Excel`);
+        // Write Headers
+        const headers = Array.from(selectedExportColumns);
+        headers.forEach((header, index) => {
+            sheet.cell(1, index + 1).value(header).style("bold", true);
+        });
+
+        // Write Data
+        filteredData.forEach((row, rowIndex) => {
+            headers.forEach((header, colIndex) => {
+                sheet.cell(rowIndex + 2, colIndex + 1).value(row[header]);
+            });
+        });
+
+        // Generate encrypted blob
+        const blob = await workbook.outputAsync({ password: "Snet@2025" });
+
+        // Trigger Download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Zone01_Schools_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        
+        showToast('✅ Excel Exported Successfully!');
+    } catch (error) {
+        console.error("Export Error:", error);
+        showToast('❌ Error exporting Excel file.');
+    }
 }
 
 // --- Save/Load Filters ---
