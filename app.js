@@ -365,30 +365,36 @@ function searchSchool() {
     const filterCC = document.getElementById('filterCC').value;
     const filterBlock = document.getElementById('filterBlock').value;
     const sortBy = document.getElementById('sortSelect').value;
-    
     const resultsContainer = document.getElementById('results');
     const resultCountEl = document.getElementById('resultCount');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
     
     document.getElementById('simpleSuggestions').innerHTML = '';
-    activeSuggestionIndex = -1;
+    
+    const selectedUdise = document.getElementById('filterUdise').value;
+    const activeTab = document.querySelector('.view-section.active')?.id;
     
     currentMatches = schoolData.filter(school => {
         // Text Match
         let textMatch = true;
         if (input) {
             textMatch = (school["SCHOOL CODE"] || '').toString().toLowerCase().includes(input) ||
+                        (school["UDISE CODE"] || '').toString().toLowerCase().includes(input) ||
                         (school["NAME OF INSTITUTION"] || '').toString().toLowerCase().includes(input) ||
                         (school["NAME OF CANDIDATES"] || '').toString().toLowerCase().includes(input);
         }
         
         // Dropdown Match
-        const projMatch = filterProject === "" || school["Project Name"] === filterProject;
-        const distMatch = filterDistrict === "" || school["DISTRICT"] === filterDistrict;
-        const ccMatch = filterCC === "" || school["NAME OF CC_DEF"] === filterCC;
-        const blockMatch = filterBlock === "" || school["BLOCK"] === filterBlock;
+        let dropMatch = true;
+        if (activeTab === 'searchView') {
+            if (filterProject && school["Project Name"] !== filterProject) dropMatch = false;
+            if (filterDistrict && school["DISTRICT"] !== filterDistrict) dropMatch = false;
+            if (filterCC && school["NAME OF CC_DEF"] !== filterCC) dropMatch = false;
+            if (selectedUdise && school["UDISE CODE"] !== selectedUdise) dropMatch = false;
+            if (filterBlock && school["BLOCK"] !== filterBlock) dropMatch = false;
+        }
         
-        return textMatch && projMatch && distMatch && ccMatch && blockMatch;
+        return textMatch && dropMatch;
     });
 
     // Sorting
@@ -431,29 +437,47 @@ function renderResults() {
         
         return `
         <div class="school-card ${isSelected ? 'selected' : ''}" data-index="${actualIndex}">
-            <div class="card-header-row">
-                <div class="card-header-left">
-                    <input type="checkbox" class="card-checkbox" data-index="${actualIndex}" ${isSelected ? 'checked' : ''}>
-                    <div class="section-title" style="margin:0; border:none; padding:0;">🏫 ${escapeHTML(school["NAME OF INSTITUTION"] || "NA")}</div>
-                </div>
+            <div class="section-title">
+                <input type="checkbox" class="card-checkbox" data-index="${actualIndex}" ${isSelected ? 'checked' : ''} style="margin-right:8px;">
+                🏫 School Details
             </div>
-            
             <div class="info-grid">
                 <div class="info-item"><div class="label">SCHOOL CODE</div><div class="value">${escapeHTML(school["SCHOOL CODE"]) || "NA"}</div></div>
-                <div class="info-item"><div class="label">Project Name</div><div class="value">${escapeHTML(school["Project Name"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">PROJECT NAME</div><div class="value">${escapeHTML(school["Project Name"]) || "NA"}</div></div>
                 <div class="info-item"><div class="label">UDISE CODE</div><div class="value">${escapeHTML(school["UDISE CODE"]) || "NA"}</div></div>
-                <div class="info-item"><div class="label">DISTRICT / BLOCK</div><div class="value">${escapeHTML(school["DISTRICT"])} / ${escapeHTML(school["BLOCK"])}</div></div>
+                <div class="info-item"><div class="label">BLOCK</div><div class="value">${escapeHTML(school["BLOCK"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">DISTRICT</div><div class="value">${escapeHTML(school["DISTRICT"]) || "NA"}</div></div>
                 <div class="info-item"><div class="label">NAME OF CC_DEF</div><div class="value">${escapeHTML(school["NAME OF CC_DEF"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">NAME OF INSTITUTION</div><div class="value"><strong>${escapeHTML(school["NAME OF INSTITUTION"]) || "NA"}</strong></div></div>
+                <div class="info-item"><div class="label">NAME OF HEAD MASTER</div><div class="value">${escapeHTML(school["NAME OF HEAD MASTER"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">HEAD MASTER MOBILE NO</div><div class="value">${school["HEAD MASTER MOBILE NO"] && school["HEAD MASTER MOBILE NO"] !== "NA" ? `<a href="tel:${escapeHTML(school["HEAD MASTER MOBILE NO"])}">${escapeHTML(school["HEAD MASTER MOBILE NO"])}</a>` : "NA"}</div></div>
             </div>
 
-            <div class="info-grid" style="background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px;">
-                <div class="info-item"><div class="label">CANDIDATE</div><div class="value"><strong>${escapeHTML(school["NAME OF CANDIDATES"]) || "NA"}</strong></div></div>
-                <div class="info-item"><div class="label">MOBILE</div><div class="value">${school["MOBILE NO."] && school["MOBILE NO."] !== "NA" ? `<a href="tel:${escapeHTML(school["MOBILE NO."])}">${escapeHTML(school["MOBILE NO."])}</a>` : "NA"}</div></div>
-                <div class="info-item"><div class="label">HEAD MASTER</div><div class="value">${escapeHTML(school["NAME OF HEAD MASTER"]) || "NA"}</div></div>
+            <div class="section-title">
+                👨‍🎓 Candidate Details
+            </div>
+            <div class="info-grid">
+                <div class="info-item"><div class="label">DATE OF JOINING</div><div class="value">${escapeHTML(school["DATE OF JOINING"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">NAME OF CANDIDATES</div><div class="value"><strong>${escapeHTML(school["NAME OF CANDIDATES"]) || "NA"}</strong></div></div>
+                <div class="info-item"><div class="label">MOBILE NO.</div><div class="value">${school["MOBILE NO."] && school["MOBILE NO."] !== "NA" ? `<a href="tel:${escapeHTML(school["MOBILE NO."])}">${escapeHTML(school["MOBILE NO."])}</a>` : "NA"}</div></div>
+                <div class="info-item"><div class="label">SECONDARY MOBILE NO</div><div class="value">${school["SECONDARY MOBILE NO"] && school["SECONDARY MOBILE NO"] !== "NA" ? `<a href="tel:${escapeHTML(school["SECONDARY MOBILE NO"])}">${escapeHTML(school["SECONDARY MOBILE NO"])}</a>` : "NA"}</div></div>
+                <div class="info-item"><div class="label">EMAIL ID</div><div class="value">${school["EMAIL ID"] && school["EMAIL ID"] !== "NA" ? `<a href="mailto:${escapeHTML(school["EMAIL ID"])}">${escapeHTML(school["EMAIL ID"])}</a>` : "NA"}</div></div>
+            </div>
+
+            <div class="section-title">
+                📍 Location Details
+            </div>
+            <div class="info-grid">
+                <div class="info-item"><div class="label">LATITUDE</div><div class="value">${escapeHTML(school["Latitude"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">LONGITUDE</div><div class="value">${escapeHTML(school["Longitude"]) || "NA"}</div></div>
+                <div class="info-item"><div class="label">GOOGLE MAP</div><div class="value">
+                    ${school["Google Map Link"] && school["Google Map Link"] !== "NA" ? `<a href="${escapeHTML(school["Google Map Link"])}" target="_blank">View on Map 🗺️</a>` : "NA"}
+                </div></div>
             </div>
             
-            <div class="copy-buttons" style="border:none; padding:0; margin-top:10px;">
-                <button class="copy-btn btn-outline" style="color:var(--text-primary);" data-copy-type="full" data-index="${actualIndex}">📄 Copy Details</button>
+            <div class="copy-buttons">
+                <button class="copy-btn copy-basic-btn" data-copy-type="basic" data-index="${actualIndex}">📋 Copy Basic</button>
+                <button class="copy-btn copy-full-btn" data-copy-type="full" data-index="${actualIndex}">📄 Copy Full</button>
             </div>
         </div>
     `}).join('');
@@ -484,6 +508,7 @@ function resetSearch(clearUI = true) {
     document.getElementById('filterProject').value = '';
     document.getElementById('filterDistrict').value = '';
     document.getElementById('filterCC').value = '';
+    document.getElementById('filterUdise').value = '';
     document.getElementById('filterBlock').value = '';
     document.getElementById('sortSelect').value = 'School Code';
     
@@ -522,7 +547,11 @@ function handleCardClick(e) {
     const copyBtn = e.target.closest('[data-copy-type]');
     if (copyBtn) {
         const idx = parseInt(copyBtn.dataset.index, 10);
-        copyFull(currentMatches[idx]);
+        if (copyBtn.dataset.copyType === 'basic') {
+            copyBasic(currentMatches[idx]);
+        } else {
+            copyFull(currentMatches[idx]);
+        }
     }
 }
 
@@ -663,6 +692,7 @@ function saveFilters() {
         project: document.getElementById('filterProject').value,
         district: document.getElementById('filterDistrict').value,
         cc: document.getElementById('filterCC').value,
+        udise: document.getElementById('filterUdise').value,
         block: document.getElementById('filterBlock').value,
         sort: document.getElementById('sortSelect').value
     };
@@ -679,6 +709,7 @@ function loadSavedFilters() {
             document.getElementById('filterProject').value = filters.project || '';
             document.getElementById('filterDistrict').value = filters.district || '';
             document.getElementById('filterCC').value = filters.cc || '';
+            document.getElementById('filterUdise').value = filters.udise || '';
             document.getElementById('filterBlock').value = filters.block || '';
             document.getElementById('sortSelect').value = filters.sort || 'School Code';
         } catch(e){}
@@ -770,6 +801,32 @@ function setupAutoRefresh() {
 }
 
 // Copy Logic
+function copyBasic(school) {
+    const basicText = `
+══════════════════════════
+🏫 SCHOOL DETAILS
+══════════════════════════
+SCHOOL CODE: ${school["SCHOOL CODE"] || "NA"}
+Project Name: ${school["Project Name"] || "NA"}
+UDISE CODE: ${school["UDISE CODE"] || "NA"}
+BLOCK: ${school["BLOCK"] || "NA"}
+DISTRICT: ${school["DISTRICT"] || "NA"}
+NAME OF CC_DEF: ${school["NAME OF CC_DEF"] || "NA"}
+NAME OF INSTITUTION: ${school["NAME OF INSTITUTION"] || "NA"}
+NAME OF HEAD MASTER: ${school["NAME OF HEAD MASTER"] || "NA"}
+HEAD MASTER MOBILE NO: ${school["HEAD MASTER MOBILE NO"] || "NA"}
+
+══════════════════════════
+👤 CANDIDATE DETAILS
+══════════════════════════
+NAME OF CANDIDATES: ${school["NAME OF CANDIDATES"] || "NA"}
+MOBILE NO.: ${school["MOBILE NO."] || "NA"}
+SECONDARY MOBILE NO: ${school["SECONDARY MOBILE NO"] || "NA"}
+EMAIL ID: ${school["EMAIL ID"] || "NA"}
+══════════════════════════`.trim();
+    copyToClipboard(basicText);
+}
+
 function copyFull(school) {
     const fullText = `
 ══════════════════════════
@@ -849,6 +906,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Search & Filter Events
     document.getElementById('applyFiltersBtn').addEventListener('click', searchSchool);
+    document.getElementById('filterDistrict').addEventListener('change', () => { updateCascadingFilters(); searchSchool(); });
+    document.getElementById('filterCC').addEventListener('change', () => { updateCascadingFilters(); searchSchool(); });
+    document.getElementById('filterUdise').addEventListener('change', () => { updateCascadingFilters(); searchSchool(); });
+    document.getElementById('filterBlock').addEventListener('change', () => { updateCascadingFilters(); searchSchool(); });
+    document.getElementById('sortSelect').addEventListener('change', searchSchool);
     document.getElementById('clearFiltersBtn').addEventListener('click', () => resetSearch(true));
     document.getElementById('refreshBtn').addEventListener('click', initializeApp);
     document.getElementById('saveFiltersBtn').addEventListener('click', saveFilters);
@@ -859,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('simpleRefreshBtn').addEventListener('click', initializeApp);
     
     // Cascading Filter Events
-    ['filterProject', 'filterDistrict', 'filterCC', 'filterBlock'].forEach(id => {
+    ['filterProject', 'filterDistrict', 'filterCC', 'filterBlock', 'filterUdise'].forEach(id => {
         document.getElementById(id).addEventListener('change', updateCascadingFilters);
     });
     
