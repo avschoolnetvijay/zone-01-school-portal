@@ -130,6 +130,7 @@ function switchTab(targetId) {
         sharedResults.style.display = 'none';
     } else {
         sharedResults.style.display = 'block';
+        searchSchool();
     }
 }
 
@@ -376,9 +377,9 @@ function searchSchool() {
         // Text Match
         let textMatch = true;
         if (input) {
-            textMatch = (school["SCHOOL CODE"] || '').toLowerCase().includes(input) ||
-                        (school["NAME OF INSTITUTION"] || '').toLowerCase().includes(input) ||
-                        (school["NAME OF CANDIDATES"] || '').toLowerCase().includes(input);
+            textMatch = (school["SCHOOL CODE"] || '').toString().toLowerCase().includes(input) ||
+                        (school["NAME OF INSTITUTION"] || '').toString().toLowerCase().includes(input) ||
+                        (school["NAME OF CANDIDATES"] || '').toString().toLowerCase().includes(input);
         }
         
         // Dropdown Match
@@ -392,11 +393,11 @@ function searchSchool() {
 
     // Sorting
     if (sortBy === "School Code") {
-        currentMatches.sort((a,b) => (a["SCHOOL CODE"]||'').localeCompare(b["SCHOOL CODE"]||''));
+        currentMatches.sort((a,b) => (a["SCHOOL CODE"]||'').toString().localeCompare((b["SCHOOL CODE"]||'').toString()));
     } else if (sortBy === "Institution Name") {
-        currentMatches.sort((a,b) => (a["NAME OF INSTITUTION"]||'').localeCompare(b["NAME OF INSTITUTION"]||''));
+        currentMatches.sort((a,b) => (a["NAME OF INSTITUTION"]||'').toString().localeCompare((b["NAME OF INSTITUTION"]||'').toString()));
     } else if (sortBy === "District") {
-        currentMatches.sort((a,b) => (a["DISTRICT"]||'').localeCompare(b["DISTRICT"]||''));
+        currentMatches.sort((a,b) => (a["DISTRICT"]||'').toString().localeCompare((b["DISTRICT"]||'').toString()));
     }
     
     currentPage = 1;
