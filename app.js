@@ -49,6 +49,7 @@ async function initializeApp() {
         buildDashboard();
         renderColumnChooser();
         loadSavedFilters();
+        switchTab('simpleSearchView');
         
         setupAutoRefresh();
     } catch (error) {
@@ -93,6 +94,14 @@ function switchTab(targetId) {
     
     document.getElementById(targetId).classList.add('active');
     document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
+    
+    // Handle shared results area visibility
+    const sharedResults = document.getElementById('sharedResultsArea');
+    if (targetId === 'dashboardView') {
+        sharedResults.style.display = 'none';
+    } else {
+        sharedResults.style.display = 'block';
+    }
 }
 
 // --- Dashboard Logic ---
@@ -270,7 +279,7 @@ document.addEventListener('click', (e) => {
     if (type === 'project') {
         document.getElementById('filterProject').value = val;
     } else if (type === 'school') {
-        document.getElementById('searchInput').value = val;
+        document.getElementById('simpleSearchInput').value = val;
     }
     // if 'all', just clear filters (handled by resetSearch)
     
@@ -320,7 +329,7 @@ function updateCascadingFilters() {
 }
 
 function searchSchool() {
-    const input = document.getElementById('searchInput').value.trim().toLowerCase();
+    const input = document.getElementById('simpleSearchInput').value.trim().toLowerCase();
     const filterProject = document.getElementById('filterProject').value;
     const filterDistrict = document.getElementById('filterDistrict').value;
     const filterCC = document.getElementById('filterCC').value;
@@ -331,7 +340,7 @@ function searchSchool() {
     const resultCountEl = document.getElementById('resultCount');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
     
-    document.getElementById('suggestions').innerHTML = '';
+    document.getElementById('simpleSuggestions').innerHTML = '';
     activeSuggestionIndex = -1;
     
     currentMatches = schoolData.filter(school => {
@@ -441,7 +450,7 @@ function loadMore() {
 }
 
 function resetSearch(clearUI = true) {
-    document.getElementById('searchInput').value = '';
+    document.getElementById('simpleSearchInput').value = '';
     document.getElementById('filterProject').value = '';
     document.getElementById('filterDistrict').value = '';
     document.getElementById('filterCC').value = '';
@@ -452,7 +461,7 @@ function resetSearch(clearUI = true) {
     
     if (clearUI) {
         document.getElementById('results').innerHTML = '';
-        document.getElementById('suggestions').innerHTML = '';
+        document.getElementById('simpleSuggestions').innerHTML = '';
         document.getElementById('resultCount').style.display = 'none';
         document.getElementById('loadMoreContainer').style.display = 'none';
         currentMatches = [];
@@ -571,7 +580,7 @@ function exportExcel(onlySelected = false) {
 
 function saveFilters() {
     const filters = {
-        query: document.getElementById('searchInput').value,
+        query: document.getElementById('simpleSearchInput').value,
         project: document.getElementById('filterProject').value,
         district: document.getElementById('filterDistrict').value,
         cc: document.getElementById('filterCC').value,
@@ -587,7 +596,7 @@ function loadSavedFilters() {
     if (saved) {
         try {
             const filters = JSON.parse(saved);
-            document.getElementById('searchInput').value = filters.query || '';
+            document.getElementById('simpleSearchInput').value = filters.query || '';
             document.getElementById('filterProject').value = filters.project || '';
             document.getElementById('filterDistrict').value = filters.district || '';
             document.getElementById('filterCC').value = filters.cc || '';
@@ -727,8 +736,8 @@ function fallbackCopy(text) {
 function debouncedSuggest() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-        const input = document.getElementById('searchInput').value.trim().toLowerCase();
-        const suggestionBox = document.getElementById('suggestions');
+        const input = document.getElementById('simpleSearchInput').value.trim().toLowerCase();
+        const suggestionBox = document.getElementById('simpleSuggestions');
         activeSuggestionIndex = -1;
         if (!input) { suggestionBox.innerHTML = ''; return; }
         
@@ -750,6 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     
     // Tab switching
+    document.getElementById('tabSimpleSearch').addEventListener('click', () => switchTab('simpleSearchView'));
     document.getElementById('tabDashboard').addEventListener('click', () => switchTab('dashboardView'));
     document.getElementById('tabSearch').addEventListener('click', () => switchTab('searchView'));
     
@@ -758,6 +768,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clearFiltersBtn').addEventListener('click', () => resetSearch(true));
     document.getElementById('refreshBtn').addEventListener('click', initializeApp);
     document.getElementById('saveFiltersBtn').addEventListener('click', saveFilters);
+    
+    // Simple Search Buttons
+    document.getElementById('simpleSearchBtn').addEventListener('click', searchSchool);
+    document.getElementById('simpleResetBtn').addEventListener('click', () => resetSearch(true));
+    document.getElementById('simpleRefreshBtn').addEventListener('click', initializeApp);
     
     // Cascading Filter Events
     ['filterProject', 'filterDistrict', 'filterCC', 'filterBlock'].forEach(id => {
@@ -776,26 +791,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Suggestions and Enter Key
-    document.getElementById('searchInput').addEventListener('input', debouncedSuggest);
-    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    document.getElementById('simpleSearchInput').addEventListener('input', debouncedSuggest);
+    document.getElementById('simpleSearchInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            document.getElementById('suggestions').innerHTML = '';
+            document.getElementById('simpleSuggestions').innerHTML = '';
             searchSchool();
         }
     });
-    document.getElementById('suggestions').addEventListener('click', (e) => {
+    document.getElementById('simpleSuggestions').addEventListener('click', (e) => {
         const item = e.target.closest('.suggestion-item');
         if (item) {
-            document.getElementById('searchInput').value = item.dataset.val;
-            document.getElementById('suggestions').innerHTML = '';
+            document.getElementById('simpleSearchInput').value = item.dataset.val;
+            document.getElementById('simpleSuggestions').innerHTML = '';
             searchSchool();
         }
     });
     
     // Global clicks (close menus)
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-box') && !e.target.closest('#suggestions')) {
-            document.getElementById('suggestions').innerHTML = '';
+        if (!e.target.closest('.filter-group') && !e.target.closest('#simpleSuggestions')) {
+            document.getElementById('simpleSuggestions').innerHTML = '';
         }
         if (!e.target.closest('.column-chooser-wrapper')) {
             document.getElementById('columnChooserMenu').style.display = 'none';

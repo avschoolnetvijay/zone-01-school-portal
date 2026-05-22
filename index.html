@@ -44,12 +44,26 @@
             
             <!-- Tabs -->
             <div class="tabs-container">
-                <button class="tab-btn active" data-target="dashboardView" id="tabDashboard">📊 Dashboard</button>
+                <button class="tab-btn active" data-target="simpleSearchView" id="tabSimpleSearch">🏫 School Search</button>
+                <button class="tab-btn" data-target="dashboardView" id="tabDashboard">📊 Dashboard</button>
                 <button class="tab-btn" data-target="searchView" id="tabSearch">🔍 Detailed Search</button>
             </div>
 
+            <!-- SIMPLE SEARCH VIEW -->
+            <div id="simpleSearchView" class="view-section active" style="margin-bottom: 20px;">
+                <div class="simple-search-bar" style="display: flex; gap: 10px; align-items: stretch; background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+                    <div class="filter-group" style="flex: 1; min-width: 250px; position: relative;">
+                        <input type="text" id="simpleSearchInput" class="filter-input" placeholder="Enter School Code, Institution Name, or Candidate Name" style="width: 100%; font-size: 15px; padding: 12px; height: 100%; box-sizing: border-box;">
+                        <div id="simpleSuggestions"></div>
+                    </div>
+                    <button class="btn btn-primary" id="simpleSearchBtn" style="font-size: 15px; padding: 0 24px; white-space: nowrap; font-weight: bold;">Search</button>
+                    <button class="btn btn-danger" id="simpleResetBtn" style="font-size: 15px; padding: 0 24px; white-space: nowrap; font-weight: bold;">Reset</button>
+                    <button class="btn btn-success" id="simpleRefreshBtn" style="font-size: 15px; padding: 0 24px; white-space: nowrap; font-weight: bold;">🔄 Refresh</button>
+                </div>
+            </div>
+
             <!-- DASHBOARD VIEW -->
-            <div id="dashboardView" class="view-section active">
+            <div id="dashboardView" class="view-section">
                 
                 <!-- Main KPIs -->
                 <div class="kpi-grid">
@@ -104,11 +118,7 @@
                 <div class="search-filters-container">
                     <!-- Filter Grid -->
                     <div class="filter-grid">
-                        <div class="filter-group">
-                            <label>SEARCH QUERY</label>
-                            <input type="text" id="searchInput" class="filter-input" placeholder="Type 3+ chars...">
-                            <div id="suggestions"></div>
-                        </div>
+                        <!-- Simple search moved to its own tab -->
                         <div class="filter-group">
                             <label>PROJECT NAME</label>
                             <select id="filterProject" class="filter-input"><option value="">All Projects</option></select>
@@ -153,8 +163,10 @@
                             <!-- Checkboxes injected here -->
                         </div>
                     </div>
-                </div>
-
+            </div>
+            
+            <!-- SHARED RESULTS AREA -->
+            <div id="sharedResultsArea" style="display: none; margin-top: 20px;">
                 <div id="resultCount" class="result-count" style="display: none;"></div>
                 <div id="results"></div>
                 <div id="loadMoreContainer" class="load-more-container" style="display: none;">
