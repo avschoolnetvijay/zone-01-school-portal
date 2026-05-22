@@ -170,10 +170,23 @@ input:checked + .slider:before { transform: translateX(20px); }
 .section-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; margin-top: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; }
 
 .copy-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding-top: 12px; border-top: 2px solid var(--border-light); }
+.copy-btn {
+    padding: 12px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 13px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    color: white;
+}
 .copy-basic-btn { background-color: var(--success); }
-.copy-basic-btn:active { background-color: var(--success-hover); transform: scale(0.98); }
 .copy-full-btn { background-color: var(--info); }
-.copy-full-btn:active { background-color: var(--info-hover); transform: scale(0.98); }
+.copy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.copy-btn:active { transform: translateY(1px); }
+
 /* Loading & Error */
 .loading { text-align: center; padding: 40px 20px; color: var(--accent); font-size: 16px; font-weight: 600; }
 .error-message { background: rgba(220, 53, 69, 0.1); border: 2px solid var(--danger); padding: 15px; border-radius: 8px; color: var(--danger); text-align: center; margin: 15px 0; font-size: 13px; }

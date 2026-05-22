@@ -1,6 +1,6 @@
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
 const MAX_SUGGESTIONS = 5;
-const RESULTS_PER_PAGE = 10;
+const RESULTS_PER_PAGE = 5000;
 const DEBOUNCE_DELAY = 250;
 
 let schoolData = [];
@@ -324,23 +324,27 @@ function updateCascadingFilters() {
     const filterProject = document.getElementById('filterProject').value;
     const filterDistrict = document.getElementById('filterDistrict').value;
     const filterCC = document.getElementById('filterCC').value;
+    const filterUdise = document.getElementById('filterUdise').value;
     const filterBlock = document.getElementById('filterBlock').value;
 
     const projects = new Set();
     const districts = new Set();
     const ccs = new Set();
+    const udises = new Set();
     const blocks = new Set();
 
     schoolData.forEach(s => {
         const matchProject = !filterProject || s["Project Name"] === filterProject;
         const matchDistrict = !filterDistrict || s["DISTRICT"] === filterDistrict;
         const matchCC = !filterCC || s["NAME OF CC_DEF"] === filterCC;
+        const matchUdise = !filterUdise || s["UDISE CODE"] === filterUdise;
         const matchBlock = !filterBlock || s["BLOCK"] === filterBlock;
 
-        if (matchDistrict && matchCC && matchBlock && s["Project Name"] && s["Project Name"] !== 'NA') projects.add(s["Project Name"]);
-        if (matchProject && matchCC && matchBlock && s["DISTRICT"] && s["DISTRICT"] !== 'NA') districts.add(s["DISTRICT"]);
-        if (matchProject && matchDistrict && matchBlock && s["NAME OF CC_DEF"] && s["NAME OF CC_DEF"] !== 'NA') ccs.add(s["NAME OF CC_DEF"]);
-        if (matchProject && matchDistrict && matchCC && s["BLOCK"] && s["BLOCK"] !== 'NA') blocks.add(s["BLOCK"]);
+        if (matchDistrict && matchCC && matchUdise && matchBlock && s["Project Name"] && s["Project Name"] !== 'NA') projects.add(s["Project Name"]);
+        if (matchProject && matchCC && matchUdise && matchBlock && s["DISTRICT"] && s["DISTRICT"] !== 'NA') districts.add(s["DISTRICT"]);
+        if (matchProject && matchDistrict && matchUdise && matchBlock && s["NAME OF CC_DEF"] && s["NAME OF CC_DEF"] !== 'NA') ccs.add(s["NAME OF CC_DEF"]);
+        if (matchProject && matchDistrict && matchCC && matchBlock && s["UDISE CODE"] && s["UDISE CODE"] !== 'NA') udises.add(s["UDISE CODE"]);
+        if (matchProject && matchDistrict && matchCC && matchUdise && s["BLOCK"] && s["BLOCK"] !== 'NA') blocks.add(s["BLOCK"]);
     });
 
     const fillDropdown = (id, set, currentValue) => {
@@ -355,6 +359,7 @@ function updateCascadingFilters() {
     fillDropdown('filterProject', projects, filterProject);
     fillDropdown('filterDistrict', districts, filterDistrict);
     fillDropdown('filterCC', ccs, filterCC);
+    fillDropdown('filterUdise', udises, filterUdise);
     fillDropdown('filterBlock', blocks, filterBlock);
 }
 
