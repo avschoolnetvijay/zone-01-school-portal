@@ -583,25 +583,59 @@ async function exportExcel(selectedOnly) {
     });
 
     try {
-        showToast('⏳ Encrypting and preparing Excel...');
+        showToast('⏳ Formatting and preparing Excel...');
         const workbook = await XlsxPopulate.fromBlankAsync();
         const sheet = workbook.sheet(0).name("Schools");
 
-        // Write Headers
         const headers = Array.from(selectedExportColumns);
-        headers.forEach((header, index) => {
-            sheet.cell(1, index + 1).value(header).style("bold", true);
-        });
+        const colWidths = new Array(headers.length).fill(10);
 
-        // Write Data
-        filteredData.forEach((row, rowIndex) => {
-            headers.forEach((header, colIndex) => {
-                sheet.cell(rowIndex + 2, colIndex + 1).value(row[header]);
+        // Pre-calculate column widths
+        headers.forEach((h, i) => colWidths[i] = Math.max(colWidths[i], h.length + 2));
+        filteredData.forEach(row => {
+            headers.forEach((header, i) => {
+                const val = row[header];
+                if (val) {
+                    const len = val.toString().length;
+                    if (len > colWidths[i]) colWidths[i] = Math.min(len + 2, 45); // Max width 45
+                }
             });
         });
 
-        // Generate encrypted blob
-        const blob = await workbook.outputAsync({ password: "Snet@2025" });
+        // Set widths
+        colWidths.forEach((width, i) => {
+            sheet.column(i + 1).width(width);
+        });
+
+        // Write Headers with Styling
+        headers.forEach((header, index) => {
+            const cell = sheet.cell(1, index + 1);
+            cell.value(header);
+            cell.style({
+                bold: true,
+                fill: "4A90E2",
+                fontColor: "ffffff",
+                border: true,
+                horizontalAlignment: "center",
+                verticalAlignment: "center"
+            });
+        });
+
+        // Write Data with Styling
+        filteredData.forEach((row, rowIndex) => {
+            headers.forEach((header, colIndex) => {
+                const cell = sheet.cell(rowIndex + 2, colIndex + 1);
+                cell.value(row[header]);
+                cell.style({
+                    border: true,
+                    verticalAlignment: "center",
+                    wrapText: true
+                });
+            });
+        });
+
+        // Generate unencrypted blob
+        const blob = await workbook.outputAsync();
 
         // Trigger Download
         const url = window.URL.createObjectURL(blob);
