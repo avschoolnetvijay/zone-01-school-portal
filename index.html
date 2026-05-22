@@ -5,15 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Zone-01 School Details Search Portal - Search and find school information, candidate details, and location data">
     <meta name="theme-color" content="#667eea">
-    <title>Zone-01 School Details Search</title>
+    <title>Zone-01 School Management Portal</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js for Dashboard Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-row">
-                <h1>🏫 Zone-01 School Details Search</h1>
+                <h1>🏫 Zone-01 School Management Portal</h1>
                 <button class="dark-mode-btn" id="darkModeToggle" aria-label="Toggle dark mode">🌙</button>
             </div>
         </div>
@@ -35,22 +39,129 @@
         <div id="loadingIndicator" class="loading">Connecting to Google Sheets...</div>
         <div id="errorMessage" class="error-message" style="display: none;"></div>
         
+        <!-- App Content (Hidden until data loads) -->
         <div id="mainContent" style="display: none;">
-            <div class="search-box">
-                <input type="text" id="searchInput" class="search-input" 
-                       placeholder="Enter School Code, Institution Name, or Candidate Name">
-                <div class="button-group">
-                    <button class="btn btn-primary" id="searchBtn">Search</button>
-                    <button class="btn btn-danger" id="resetBtn">Reset</button>
-                    <button class="btn btn-success" id="refreshBtn">🔄 Refresh</button>
+            
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <button class="tab-btn active" data-target="dashboardView" id="tabDashboard">📊 Dashboard</button>
+                <button class="tab-btn" data-target="searchView" id="tabSearch">🔍 Detailed Search</button>
+            </div>
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboardView" class="view-section active">
+                
+                <!-- Main KPIs -->
+                <div class="kpi-grid">
+                    <div class="kpi-card clickable" data-filter-type="all">
+                        <div class="kpi-icon">🏫</div>
+                        <div class="kpi-value" id="kpiSchools">0</div>
+                        <div class="kpi-label">TOTAL SCHOOLS</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">📍</div>
+                        <div class="kpi-value" id="kpiDistricts">0</div>
+                        <div class="kpi-label">TOTAL DISTRICTS</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">🏘️</div>
+                        <div class="kpi-value" id="kpiBlocks">0</div>
+                        <div class="kpi-label">TOTAL BLOCKS</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👥</div>
+                        <div class="kpi-value" id="kpiCandidates">0</div>
+                        <div class="kpi-label">CANDIDATES</div>
+                    </div>
+                </div>
+
+                <!-- Project-wise Summary -->
+                <div class="dashboard-section">
+                    <h2 class="section-heading">📦 Project-wise Summary</h2>
+                    <div class="project-summary-layout">
+                        <div class="project-cards-grid" id="projectCardsContainer">
+                            <!-- Project cards injected here -->
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="projectChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hierarchical View -->
+                <div class="dashboard-section">
+                    <h2 class="section-heading">🌳 Hierarchical View: Project → District → CC → Institution</h2>
+                    <div class="hierarchy-container" id="hierarchyContainer">
+                        <!-- Hierarchy injected here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SEARCH VIEW -->
+            <div id="searchView" class="view-section" style="display: none;">
+                
+                <div class="search-filters-container">
+                    <!-- Filter Grid -->
+                    <div class="filter-grid">
+                        <div class="filter-group">
+                            <label>SEARCH QUERY</label>
+                            <input type="text" id="searchInput" class="filter-input" placeholder="Type 3+ chars...">
+                            <div id="suggestions"></div>
+                        </div>
+                        <div class="filter-group">
+                            <label>PROJECT NAME</label>
+                            <select id="filterProject" class="filter-input"><option value="">All Projects</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>DISTRICT</label>
+                            <select id="filterDistrict" class="filter-input"><option value="">All Districts</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>CC NAME</label>
+                            <select id="filterCC" class="filter-input"><option value="">All CCs</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>BLOCK</label>
+                            <select id="filterBlock" class="filter-input"><option value="">All Blocks</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>SORT BY</label>
+                            <select id="sortSelect" class="filter-input">
+                                <option value="School Code">School Code</option>
+                                <option value="Institution Name">Institution Name</option>
+                                <option value="District">District</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Actions Row -->
+                    <div class="action-buttons-grid">
+                        <button class="btn btn-primary" id="applyFiltersBtn">🔍 Apply Filters</button>
+                        <button class="btn btn-danger" id="clearFiltersBtn">🗑️ Clear All</button>
+                        <button class="btn btn-warning" id="selectAllBtn">☑️ Select All</button>
+                        <button class="btn btn-success" id="exportAllBtn">📊 Export All</button>
+                        <button class="btn btn-info" id="exportSelectedBtn">📑 Export Selected</button>
+                        <button class="btn btn-outline" id="saveFiltersBtn">💾 Save Filters</button>
+                        <button class="btn btn-success" id="refreshBtn">🔄 Refresh</button>
+                    </div>
+
+                    <!-- Column Chooser Toggle -->
+                    <div class="column-chooser-wrapper">
+                        <button class="btn btn-outline small-btn" id="columnChooserToggle">⚙️ Choose Columns for Export</button>
+                        <div class="column-chooser-menu" id="columnChooserMenu" style="display: none;">
+                            <!-- Checkboxes injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultCount" class="result-count" style="display: none;"></div>
+                <div id="results"></div>
+                <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                    <button class="btn btn-primary load-more-btn" id="loadMoreBtn">Load More Results</button>
                 </div>
             </div>
-            <div id="suggestions"></div>
-            <div id="resultCount" class="result-count" style="display: none;"></div>
-            <div id="results"></div>
-            <div id="loadMoreContainer" class="load-more-container" style="display: none;">
-                <button class="btn btn-primary load-more-btn" id="loadMoreBtn">Load More Results</button>
-            </div>
+            
         </div>
     </div>
 
