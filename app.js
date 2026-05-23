@@ -899,12 +899,17 @@ function debouncedSuggest() {
         
         const suggestions = schoolData.filter(school => 
             (school["SCHOOL CODE"] || '').toLowerCase().includes(input) ||
-            (school["NAME OF INSTITUTION"] || '').toLowerCase().includes(input)
+            (school["NAME OF INSTITUTION"] || '').toLowerCase().includes(input) ||
+            (school["NAME OF CANDIDATES"] || '').toLowerCase().includes(input) ||
+            (school["DISTRICT"] || '').toLowerCase().includes(input) ||
+            (school["BLOCK"] || '').toLowerCase().includes(input)
         ).slice(0, MAX_SUGGESTIONS);
         
         suggestionBox.innerHTML = suggestions.map((school, i) => `
             <div class="suggestion-item" data-val="${escapeHTML(school["SCHOOL CODE"])}" data-index="${i}">
-                <strong>${escapeHTML(school["SCHOOL CODE"])}</strong> - ${escapeHTML(school["NAME OF INSTITUTION"])}
+                <div style="font-weight: bold; color: var(--accent); margin-bottom: 2px;">${escapeHTML(school["SCHOOL CODE"] || "NA")}</div>
+                <div style="margin-bottom: 2px;">${escapeHTML(school["NAME OF INSTITUTION"] || "NA")}</div>
+                <small style="color: var(--text-secondary);">${school["NAME OF CANDIDATES"] && school["NAME OF CANDIDATES"] !== "NA" ? `👨‍🎓 ${escapeHTML(school["NAME OF CANDIDATES"])} • ` : ''}📍 ${escapeHTML(school["DISTRICT"] || "NA")}</small>
             </div>
         `).join('');
     }, DEBOUNCE_DELAY);
