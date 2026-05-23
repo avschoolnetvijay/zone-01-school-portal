@@ -378,6 +378,21 @@ function searchSchool() {
     
     const selectedUdise = document.getElementById('filterUdise').value;
     const activeTab = document.querySelector('.view-section.active')?.id;
+
+    let hasSearchCriteria = false;
+    if (activeTab === 'simpleSearchView' && input) {
+        hasSearchCriteria = true;
+    } else if (activeTab === 'searchView' && (filterProject || filterDistrict || filterCC || selectedUdise || filterBlock)) {
+        hasSearchCriteria = true;
+    }
+
+    if (!hasSearchCriteria) {
+        currentMatches = [];
+        resultsContainer.innerHTML = '';
+        resultCountEl.style.display = 'none';
+        loadMoreContainer.style.display = 'none';
+        return;
+    }
     
     currentMatches = schoolData.filter(school => {
         // Text Match
